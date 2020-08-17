@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Titel</title>
+  </head>
+  <body
+    style="background-color: #eee; display: flex; justify-content: center;"
+  >
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script>
+      const width = 500;
+      const height = 100;
+      const margin = 20;
+
+      const random = d3.randomUniform(0, 10);
+      const data = () =>
+        Array.from({ length: 1 }).map((_) => Math.round(random()) / 10);
+
+      const svg = d3
+        .select("body")
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("width", width);
+
+      const xScale = d3.scaleLinear([margin, width - margin]);
+      const colorScale = d3.scaleLinear().range(["red", "blue"]);
+
+      console.log(colorScale(0), colorScale(0.5));
+
+      svg
+        .append("g")
+        .attr("transform", `translate(0, ${margin})`)
+        .call(d3.axisTop(xScale))
+        .call((g) => g.select(".domain").remove());
+
+      setInterval(() => {
+        svg
+          .selectAll("circle")
+          .data(data(), (d) => d)
+          .join(
+            (enter) =>
+              enter
+                .append("circle")
+                .attr("stroke", () => colorScale(0))
+                .attr("fill", () => colorScale(0))
+                .call((enter) =>
+                  enter
+                    .transition()
+                    .attr("r", 7)
+                    .transition()
+                    .duration(750)
+                    .ease(d3.easeBounceOut)
+                    .attr("cx", (d) => xScale(d))
+                    .attr("stroke", (d) => colorScale(d))
+                    .attr("fill", (d) => colorScale(d))
+                ),
+            (update) => update,
+            (exit) =>
+              exit.call((exit) =>
+                exit
+                  .transition()
+                  .duration(750)
+                  .ease(d3.easeBackIn.overshoot(2.22))
+                  .attr("r", 0)
+                  .attr("cy", height)
+                  .remove()
+              )
+          )
+          .attr("cx", xScale(0))
+          .attr("cy", height / 2);
+      }, 1000);
+    </script>
+  </body>
+</html>
